@@ -1,2 +1,4 @@
 # deimos-mad
-D bindings for MPEG Audio Decoder.
+
+This package contains the MAD MPEG Audio Decoder headers translated to D.
+As a derived work, it retains the original MAD license. See the file COPYING.
