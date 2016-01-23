@@ -1,0 +1,6 @@
+name "deimos-mad"
+description "Deimos Bindings for deimos-mad."
+license "GPL-2.0 or later or proprietary"
+importPaths "."
+libs "mad" platform="posix"
+targetType "sourceLibrary"
