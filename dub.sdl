@@ -1,5 +1,5 @@
-name "deimos-mad"
-description "Deimos Bindings for deimos-mad."
+name "mad"
+description "Deimos Bindings for MAD (MPEG Audio Decoder)."
 license "GPL-2.0 or later or proprietary"
 importPaths "."
 libs "mad" platform="posix"
