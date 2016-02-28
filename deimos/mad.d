@@ -208,6 +208,7 @@ struct mad_stream
     int options;
     mad_error error;
 }
+static assert(mad_stream.sizeof == 120);
 
 struct mad_header
 {
@@ -223,6 +224,7 @@ struct mad_header
     int private_bits;
     mad_timer_t duration;
 }
+static assert(mad_header.sizeof == 56);
 
 struct mad_frame
 {
@@ -231,6 +233,7 @@ struct mad_frame
     mad_fixed_t[32][36][2] sbsample;
     mad_fixed_t[18][32][2]* overlap;
 }
+static assert(mad_frame.sizeof == 9288);
 
 struct mad_pcm
 {
@@ -247,26 +250,39 @@ struct mad_synth
     mad_pcm pcm;
 }
 
-private struct _mad_decoder_sync
-{
-    c_long pid;
-    int in_;
-    int out_;
-}
+alias input_func_t = extern(C) mad_flow function (void*, mad_stream*);
+alias header_func_t = extern(C) mad_flow function (void*, const(mad_header)*);
+alias filter_func_t = extern(C) mad_flow function (void*, const(mad_stream)*, mad_frame*);
+alias output_func_t = extern(C) mad_flow function (void*, const(mad_header)*, mad_pcm*);
+alias error_func_t = extern(C) mad_flow function (void*, mad_stream*, mad_frame*);
+alias message_func_t = extern(C) mad_flow function (void*, void*, uint*);
 
 struct mad_decoder
 {
     mad_decoder_mode mode;
     int options;
-    _mad_decoder_sync* sync;
+	static struct _async {
+		c_long pid;
+		int in_;
+		int out_;
+	};
+    _async async;
+	static struct _sync {
+		mad_stream stream;
+		mad_frame frame;
+		mad_synth synth;
+	}
+    _sync* sync;
     void* cb_data;
-    mad_flow function (void*, mad_stream*) input_func;
-    mad_flow function (void*, const(mad_header)*) header_func;
-    mad_flow function (void*, const(mad_stream)*, mad_frame*) filter_func;
-    mad_flow function (void*, const(mad_header)*, mad_pcm*) output_func;
-    mad_flow function (void*, mad_stream*, mad_frame*) error_func;
-    mad_flow function (void*, void*, uint*) message_func;
+    input_func_t input_func;
+    header_func_t header_func;
+    filter_func_t filter_func;
+    output_func_t output_func;
+    error_func_t error_func;
+    message_func_t message_func;
 }
+static assert(mad_decoder.sizeof == 88);
+static assert(mad_decoder.init.sync.offsetof == 24);
 
 mad_fixed_t mad_f_abs (mad_fixed_t);
 mad_fixed_t mad_f_div (mad_fixed_t, mad_fixed_t);
@@ -301,7 +317,7 @@ void mad_frame_mute (mad_frame*);
 void mad_synth_init (mad_synth*);
 void mad_synth_mute (mad_synth*);
 void mad_synth_frame (mad_synth*, const(mad_frame)*);
-void mad_decoder_init (mad_decoder*, void*, mad_flow function (void*, mad_stream*), mad_flow function (void*, const(mad_header)*), mad_flow function (void*, const(mad_stream)*, mad_frame*), mad_flow function (void*, const(mad_header)*, mad_pcm*), mad_flow function (void*, mad_stream*, mad_frame*), mad_flow function (void*, void*, uint*));
+void mad_decoder_init (mad_decoder*, void*, input_func_t, header_func_t, filter_func_t, output_func_t, error_func_t, message_func_t);
 int mad_decoder_finish (mad_decoder*);
 int mad_decoder_run (mad_decoder*, mad_decoder_mode);
 int mad_decoder_message (mad_decoder*, void*, uint*);
